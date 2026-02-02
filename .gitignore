@@ -1,17 +1,23 @@
+cat > .gitignore << 'EOF'
+# OS
+.DS_Store
+
+# Env
+.env
+.env.*
+
 # Python
 venv/
 __pycache__/
 *.pyc
+.pytest_cache/
 
 # Node
 node_modules/
 dist/
+.build/
+.svelte-kit/
 
-# Env files
-.env
-
-# Docker
+# Logs
 *.log
-
-# OS
-.DS_Store
+EOF
