@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.db.session import engine
 from app.db.base import Base
 from app.api.routes.auth import router as auth_router
+from app.api.routes.users import router as users_router
+
 
 app = FastAPI(title="Learnify AI API")
 
@@ -14,6 +16,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.include_router(auth_router)
+app.include_router(users_router)
+
 
 @app.on_event("startup")
 def startup():
