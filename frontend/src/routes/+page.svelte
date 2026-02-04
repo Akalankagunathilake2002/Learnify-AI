@@ -13,6 +13,7 @@
   <ul>
     <li><a href="/login">Login</a></li>
     <li><a href="/me">My Profile</a></li>
-    <li><a href="/logout">Logout</a></li>
+   
+     <li><a href="/courses">Courses</a></li>
   </ul>
 </nav>
