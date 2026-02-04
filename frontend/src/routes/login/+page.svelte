@@ -1,12 +1,15 @@
 <script lang="ts">
+  import { goto } from "$app/navigation";
+
   const API_URL = import.meta.env.PUBLIC_API_URL ?? "http://127.0.0.1:8000";
 
   let email = "";
   let password = "";
-  let message = "";
+  let error: string | null = null;
 
   async function login() {
-    message = "";
+    error = null;
+
     const res = await fetch(`${API_URL}/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -14,22 +17,24 @@
     });
 
     if (!res.ok) {
-      message = "Login failed";
+      error = "Invalid email or password";
       return;
     }
 
     const data = await res.json();
     localStorage.setItem("token", data.access_token);
-    message = "✅ Logged in! Token saved.";
+    goto("/me");
   }
 </script>
 
 <h1>Login</h1>
 
 <input placeholder="Email" bind:value={email} />
-<input placeholder="Password" type="password" bind:value={password} />
+<br />
+<input type="password" placeholder="Password" bind:value={password} />
+<br />
 <button on:click={login}>Login</button>
 
-<p>{message}</p>
-
-<p><a href="/me">Go to /me</a></p>
+{#if error}
+  <p style="color:red">{error}</p>
+{/if}
