@@ -1,9 +1,26 @@
 <script lang="ts">
-	import './layout.css';
-	import favicon from '$lib/assets/favicon.svg';
+  import { onMount } from "svelte";
+  import { authed, syncAuthFromStorage } from "$lib/authStore";
 
-	let { children } = $props();
+  onMount(() => {
+    syncAuthFromStorage();
+  });
 </script>
 
-<svelte:head><link rel="icon" href={favicon} /></svelte:head>
-{@render children()}
+<nav style="padding: 12px; border-bottom: 1px solid #ddd;">
+  <a href="/" style="margin-right: 12px;">Home</a>
+
+  {#if $authed}
+    <a href="/me" style="margin-right: 12px;">My Profile</a>
+    <a href="/courses" style="margin-right: 12px;">Courses</a>
+    <a href="/logout">Logout</a>
+  {:else}
+    <a href="/login">Login</a>
+    <span style="margin: 0 10px;">|</span>
+  <a href="/register">Register</a>
+  {/if}
+</nav>
+
+<div style="padding: 16px;">
+  <slot />
+</div>

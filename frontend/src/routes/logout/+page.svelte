@@ -1,7 +1,12 @@
 <script lang="ts">
-  localStorage.removeItem("token");
+  import { clearToken } from "$lib/authStore";
+  import { goto } from "$app/navigation";
+  import { onMount } from "svelte";
+
+  onMount(() => {
+    clearToken();
+    goto("/login");
+  });
 </script>
 
-<h1>Logged out</h1>
-<p>✅ Token removed.</p>
-<p><a href="/login">Go to Login</a></p>
+<p>Logging out...</p>

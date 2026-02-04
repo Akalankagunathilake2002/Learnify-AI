@@ -1,19 +1,98 @@
 <script lang="ts">
-  // simple home page, no auth logic here
+  // no logic needed for home page
 </script>
 
-<h1>Welcome to Learnify AI 🚀</h1>
+<section class="hero">
+  <div class="hero-content">
+    <h1>
+      Welcome to <span>Learnify AI</span> 🚀
+    </h1>
 
-<p>
-  A modern AI-powered learning platform built with SvelteKit, FastAPI, PostgreSQL,
-  Docker, and CI/CD.
-</p>
+    <p class="subtitle">
+      A modern AI-powered learning platform built with
+      <strong>SvelteKit</strong>, <strong>FastAPI</strong>,
+      <strong>PostgreSQL</strong>, <strong>Docker</strong>, and
+      <strong>CI/CD</strong>.
+    </p>
 
-<nav style="margin-top: 1rem">
-  <ul>
-    <li><a href="/login">Login</a></li>
-    <li><a href="/me">My Profile</a></li>
-   
-     <li><a href="/courses">Courses</a></li>
-  </ul>
-</nav>
+    <div class="actions">
+      <a href="/courses" class="btn primary">Explore Courses</a>
+      <a href="/login" class="btn secondary">Login</a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    min-height: calc(100vh - 80px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(
+      135deg,
+      #0f2027,
+      #203a43,
+      #2c5364
+    );
+    color: white;
+    padding: 2rem;
+  }
+
+  .hero-content {
+    max-width: 720px;
+    text-align: center;
+  }
+
+  h1 {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    font-weight: 800;
+  }
+
+  h1 span {
+    color: #38bdf8;
+  }
+
+  .subtitle {
+    font-size: 1.2rem;
+    line-height: 1.7;
+    opacity: 0.9;
+    margin-bottom: 2.5rem;
+  }
+
+  .actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    padding: 0.75rem 1.6rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.2s ease;
+  }
+
+  .btn.primary {
+    background: #38bdf8;
+    color: #0f172a;
+  }
+
+  .btn.primary:hover {
+    background: #0ea5e9;
+    transform: translateY(-2px);
+  }
+
+  .btn.secondary {
+    border: 2px solid #38bdf8;
+    color: #38bdf8;
+  }
+
+  .btn.secondary:hover {
+    background: rgba(56, 189, 248, 0.15);
+    transform: translateY(-2px);
+  }
+</style>

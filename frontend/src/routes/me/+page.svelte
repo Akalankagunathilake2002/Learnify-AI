@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from "svelte";
   import { goto } from "$app/navigation";
 
   const API_URL = import.meta.env.PUBLIC_API_URL ?? "http://127.0.0.1:8000";
@@ -17,9 +18,7 @@
 
     try {
       const res = await fetch(`${API_URL}/users/me`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+        headers: { Authorization: `Bearer ${token}` }
       });
 
       if (!res.ok) {
@@ -39,7 +38,7 @@
     }
   }
 
-  loadMe();
+  onMount(loadMe);
 </script>
 
 <h1>My Profile</h1>

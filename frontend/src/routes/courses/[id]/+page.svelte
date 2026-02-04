@@ -1,6 +1,7 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
   import { page } from "$app/stores";
+  import { onMount } from "svelte";
 
   const API_URL = import.meta.env.PUBLIC_API_URL ?? "http://127.0.0.1:8000";
 
@@ -19,9 +20,7 @@
 
     try {
       const res = await fetch(`${API_URL}/courses/${courseId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+        headers: { Authorization: `Bearer ${token}` }
       });
 
       if (!res.ok) {
@@ -41,7 +40,7 @@
     }
   }
 
-  loadCourse();
+  onMount(loadCourse);  // ✅ FIX: was incorrectly calling loadCourses()
 </script>
 
 <h1>Course Details</h1>
