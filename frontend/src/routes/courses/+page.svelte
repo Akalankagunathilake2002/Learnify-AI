@@ -43,6 +43,11 @@
 
 <h1>Courses</h1>
 
+<p>
+  <a href="/courses/new">+ Create Course</a>
+</p>
+
+
 {#if loading}
   <p>Loading...</p>
 {:else if error}
