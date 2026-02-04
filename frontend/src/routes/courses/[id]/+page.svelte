@@ -7,9 +7,15 @@
 
   let loading = true;
   let error: string | null = null;
-  let course: any = null;
 
-  async function loadCourse() {
+  let course: any = null;
+  let lessons: any[] = [];
+
+  let newTitle = "";
+  let newContent = "";
+  let createMsg: string | null = null;
+
+  async function fetchCourseAndLessons() {
     const token = localStorage.getItem("token");
     if (!token) {
       goto("/login");
@@ -19,20 +25,19 @@
     const courseId = $page.params.id;
 
     try {
-      const res = await fetch(`${API_URL}/courses/${courseId}`, {
+      const courseRes = await fetch(`${API_URL}/courses/${courseId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      if (!res.ok) {
-        if (res.status === 401) {
-          localStorage.removeItem("token");
-          goto("/login");
-          return;
-        }
-        throw new Error(`HTTP ${res.status}`);
-      }
+      if (!courseRes.ok) throw new Error(`Course HTTP ${courseRes.status}`);
+      course = await courseRes.json();
 
-      course = await res.json();
+      const lessonsRes = await fetch(`${API_URL}/courses/${courseId}/lessons`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (!lessonsRes.ok) throw new Error(`Lessons HTTP ${lessonsRes.status}`);
+      lessons = await lessonsRes.json();
     } catch (e: any) {
       error = e?.message ?? "Failed to load course";
     } finally {
@@ -40,20 +45,77 @@
     }
   }
 
-  onMount(loadCourse);  // ✅ FIX: was incorrectly calling loadCourses()
-</script>
+  async function createLesson() {
+    createMsg = null;
+    const token = localStorage.getItem("token");
+    if (!token) {
+      goto("/login");
+      return;
+    }
 
-<h1>Course Details</h1>
+    const courseId = $page.params.id;
+
+    const res = await fetch(`${API_URL}/courses/${courseId}/lessons`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ title: newTitle, content: newContent })
+    });
+
+    if (!res.ok) {
+      createMsg = "❌ Failed to create lesson";
+      return;
+    }
+
+    createMsg = "✅ Lesson created";
+    newTitle = "";
+    newContent = "";
+    await fetchCourseAndLessons();
+  }
+
+  onMount(fetchCourseAndLessons);
+</script>
 
 {#if loading}
   <p>Loading...</p>
 {:else if error}
   <p style="color:red">{error}</p>
 {:else}
-  <h2>{course.title}</h2>
+  <h1>{course.title}</h1>
   <p>{course.description}</p>
-{/if}
 
-<p style="margin-top:1rem">
-  <a href="/courses">← Back to courses</a>
-</p>
+  <hr />
+
+  <h2>Lessons</h2>
+
+  {#if lessons.length === 0}
+    <p>No lessons yet.</p>
+  {:else}
+    <ul>
+      {#each lessons as lesson}
+        <li>
+          <a href={`/lessons/${lesson.id}`}>{lesson.title}</a>
+        </li>
+      {/each}
+    </ul>
+  {/if}
+
+  <hr />
+
+  <h3>Add Lesson</h3>
+  <input placeholder="Lesson title" bind:value={newTitle} />
+  <br />
+  <textarea rows="5" placeholder="Lesson content" bind:value={newContent}></textarea>
+  <br />
+  <button on:click={createLesson} disabled={!newTitle}>Create Lesson</button>
+
+  {#if createMsg}
+    <p>{createMsg}</p>
+  {/if}
+
+  <p style="margin-top:1rem">
+    <a href="/courses">← Back to courses</a>
+  </p>
+{/if}
