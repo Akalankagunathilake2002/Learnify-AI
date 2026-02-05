@@ -15,7 +15,21 @@
   let newContent = "";
   let createMsg: string | null = null;
 
+  let enrollMsg: string | null = null;
+
+  let progress: any = null;
+
+  async function loadProgress(courseId: string, token: string) {
+    const res = await fetch(`${API_URL}/courses/${courseId}/progress`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (res.ok) progress = await res.json();
+  }
+
   async function fetchCourseAndLessons() {
+    loading = true;
+    error = null;
+
     const token = localStorage.getItem("token");
     if (!token) {
       goto("/login");
@@ -28,16 +42,17 @@
       const courseRes = await fetch(`${API_URL}/courses/${courseId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-
       if (!courseRes.ok) throw new Error(`Course HTTP ${courseRes.status}`);
       course = await courseRes.json();
 
       const lessonsRes = await fetch(`${API_URL}/courses/${courseId}/lessons`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-
       if (!lessonsRes.ok) throw new Error(`Lessons HTTP ${lessonsRes.status}`);
       lessons = await lessonsRes.json();
+
+      // ✅ load progress after lessons load
+      await loadProgress(courseId, token);
     } catch (e: any) {
       error = e?.message ?? "Failed to load course";
     } finally {
@@ -45,8 +60,30 @@
     }
   }
 
+  async function enroll() {
+    enrollMsg = null;
+
+    const token = localStorage.getItem("token");
+    if (!token) return goto("/login");
+
+    const courseId = $page.params.id;
+
+    const res = await fetch(`${API_URL}/courses/${courseId}/enroll`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    if (!res.ok) {
+      enrollMsg = `❌ Enroll failed (HTTP ${res.status})`;
+      return;
+    }
+
+    enrollMsg = "✅ Enrolled!";
+  }
+
   async function createLesson() {
     createMsg = null;
+
     const token = localStorage.getItem("token");
     if (!token) {
       goto("/login");
@@ -72,34 +109,11 @@
     createMsg = "✅ Lesson created";
     newTitle = "";
     newContent = "";
-    await fetchCourseAndLessons();
+
+    await fetchCourseAndLessons(); // refresh lessons + progress
   }
 
   onMount(fetchCourseAndLessons);
-
-
-  let enrollMsg: string | null = null;
-
-async function enroll() {
-  enrollMsg = null;
-  const token = localStorage.getItem("token");
-  if (!token) return goto("/login");
-
-  const courseId = $page.params.id;
-
-  const res = await fetch(`${API_URL}/courses/${courseId}/enroll`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${token}` }
-  });
-
-  if (!res.ok) {
-    enrollMsg = `❌ Enroll failed (HTTP ${res.status})`;
-    return;
-  }
-
-  enrollMsg = "✅ Enrolled!";
-}
-
 </script>
 
 {#if loading}
@@ -110,9 +124,15 @@ async function enroll() {
   <h1>{course.title}</h1>
   <p>{course.description}</p>
 
-  <button on:click={enroll}>Enroll</button>
-<p>{enrollMsg}</p>
+  {#if progress}
+    <p>
+      Progress: {progress.completed_lessons}/{progress.total_lessons}
+      ({progress.percent}%)
+    </p>
+  {/if}
 
+  <button on:click={enroll}>Enroll</button>
+  {#if enrollMsg}<p>{enrollMsg}</p>{/if}
 
   <hr />
 
