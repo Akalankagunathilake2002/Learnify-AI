@@ -14,6 +14,8 @@
     <a href="/me" style="margin-right: 12px;">My Profile</a>
     <a href="/courses" style="margin-right: 12px;">Courses</a>
     <a href="/my-courses" style="margin-right: 12px;">My Courses</a>
+    <a href="/billing">Upgrade</a>
+
 
     <a href="/logout">Logout</a>
 
