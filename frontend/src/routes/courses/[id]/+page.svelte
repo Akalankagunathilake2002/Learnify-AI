@@ -76,6 +76,30 @@
   }
 
   onMount(fetchCourseAndLessons);
+
+
+  let enrollMsg: string | null = null;
+
+async function enroll() {
+  enrollMsg = null;
+  const token = localStorage.getItem("token");
+  if (!token) return goto("/login");
+
+  const courseId = $page.params.id;
+
+  const res = await fetch(`${API_URL}/courses/${courseId}/enroll`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` }
+  });
+
+  if (!res.ok) {
+    enrollMsg = `❌ Enroll failed (HTTP ${res.status})`;
+    return;
+  }
+
+  enrollMsg = "✅ Enrolled!";
+}
+
 </script>
 
 {#if loading}
@@ -85,6 +109,10 @@
 {:else}
   <h1>{course.title}</h1>
   <p>{course.description}</p>
+
+  <button on:click={enroll}>Enroll</button>
+<p>{enrollMsg}</p>
+
 
   <hr />
 
