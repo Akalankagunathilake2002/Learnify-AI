@@ -12,7 +12,9 @@ class CourseOut(BaseModel):
     id: int
     title: str
     description: Optional[str]
+    status: str
     created_at: datetime
+   
 
     class Config:
         from_attributes = True

@@ -1,15 +1,14 @@
-from sqlalchemy import String, Text, DateTime, func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import Column, Integer, String, Text, DateTime
+from sqlalchemy.sql import func
+
 from app.db.base import Base
 
 
 class Course(Base):
     __tablename__ = "courses"
 
-    id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    title: Mapped[str] = mapped_column(String(200), nullable=False)
-    description: Mapped[str] = mapped_column(Text, nullable=True)
-
-    created_at: Mapped[DateTime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
-    )
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String(200), nullable=False)
+    description = Column(Text, nullable=True)
+    status = Column(String(20), nullable=False, default="draft")  # 👈 NEW
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
