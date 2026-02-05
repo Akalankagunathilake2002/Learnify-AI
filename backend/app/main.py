@@ -6,7 +6,7 @@ from app.api.routes.auth import router as auth_router
 from app.api.routes.users import router as users_router
 from app.api.routes.courses import router as courses_router
 from app.api.routes.lessons import router as lessons_router
-
+from app.api.routes.enrollments import router as enrollments_router
 
 
 
@@ -23,7 +23,7 @@ app.include_router(auth_router)
 app.include_router(users_router)
 app.include_router(courses_router)
 app.include_router(lessons_router)
-
+app.include_router(enrollments_router)
 
 
 @app.on_event("startup")
