@@ -8,6 +8,8 @@ from app.api.routes.courses import router as courses_router
 from app.api.routes.lessons import router as lessons_router
 from app.api.routes.enrollments import router as enrollments_router
 from app.api.routes.progress import router as progress_router
+from app.api.routes.my_courses import router as my_router
+
 
 
 app = FastAPI(title="Learnify AI API")
@@ -25,6 +27,7 @@ app.include_router(courses_router)
 app.include_router(lessons_router)
 app.include_router(enrollments_router)
 app.include_router(progress_router)
+app.include_router(my_router)
 
 
 @app.on_event("startup")
