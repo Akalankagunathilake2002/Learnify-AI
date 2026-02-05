@@ -19,6 +19,14 @@
 
   let progress: any = null;
 
+  // ✅ role-based UI control
+  let canEdit = false;
+
+  function computeCanEdit() {
+    const role = localStorage.getItem("role") ?? "student";
+    canEdit = role === "instructor" || role === "admin";
+  }
+
   async function loadProgress(courseId: string, token: string) {
     const res = await fetch(`${API_URL}/courses/${courseId}/progress`, {
       headers: { Authorization: `Bearer ${token}` }
@@ -36,6 +44,9 @@
       return;
     }
 
+    // ✅ set canEdit based on role saved from /me
+    computeCanEdit();
+
     const courseId = $page.params.id;
 
     try {
@@ -51,7 +62,6 @@
       if (!lessonsRes.ok) throw new Error(`Lessons HTTP ${lessonsRes.status}`);
       lessons = await lessonsRes.json();
 
-      // ✅ load progress after lessons load
       await loadProgress(courseId, token);
     } catch (e: any) {
       error = e?.message ?? "Failed to load course";
@@ -85,10 +95,7 @@
     createMsg = null;
 
     const token = localStorage.getItem("token");
-    if (!token) {
-      goto("/login");
-      return;
-    }
+    if (!token) return goto("/login");
 
     const courseId = $page.params.id;
 
@@ -102,6 +109,10 @@
     });
 
     if (!res.ok) {
+      if (res.status === 403) {
+        createMsg = "❌ Only instructors can create lessons.";
+        return;
+      }
       createMsg = "❌ Failed to create lesson";
       return;
     }
@@ -110,7 +121,7 @@
     newTitle = "";
     newContent = "";
 
-    await fetchCourseAndLessons(); // refresh lessons + progress
+    await fetchCourseAndLessons();
   }
 
   onMount(fetchCourseAndLessons);
@@ -152,15 +163,21 @@
 
   <hr />
 
-  <h3>Add Lesson</h3>
-  <input placeholder="Lesson title" bind:value={newTitle} />
-  <br />
-  <textarea rows="5" placeholder="Lesson content" bind:value={newContent}></textarea>
-  <br />
-  <button on:click={createLesson} disabled={!newTitle}>Create Lesson</button>
+  {#if canEdit}
+    <h3>Add Lesson</h3>
+    <input placeholder="Lesson title" bind:value={newTitle} />
+    <br />
+    <textarea rows="5" placeholder="Lesson content" bind:value={newContent}></textarea>
+    <br />
+    <button on:click={createLesson} disabled={!newTitle}>Create Lesson</button>
 
-  {#if createMsg}
-    <p>{createMsg}</p>
+    {#if createMsg}
+      <p>{createMsg}</p>
+    {/if}
+  {:else}
+    <p style="opacity:0.8">
+      🔒 Only instructors can create lessons.
+    </p>
   {/if}
 
   <p style="margin-top:1rem">

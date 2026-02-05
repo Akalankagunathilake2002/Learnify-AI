@@ -24,6 +24,7 @@
       if (!res.ok) {
         if (res.status === 401) {
           localStorage.removeItem("token");
+          localStorage.removeItem("role");
           goto("/login");
           return;
         }
@@ -31,6 +32,9 @@
       }
 
       user = await res.json();
+
+      // ✅ SAVE ROLE (for UI permissions)
+      localStorage.setItem("role", user.role ?? "student");
     } catch (e: any) {
       error = e?.message ?? "Failed to load profile";
     } finally {
@@ -48,6 +52,9 @@
 {:else if error}
   <p style="color:red">{error}</p>
 {:else}
+  <p><strong>Email:</strong> {user.email}</p>
+  <p><strong>Role:</strong> {user.role}</p>
+
   <pre>{JSON.stringify(user, null, 2)}</pre>
 {/if}
 

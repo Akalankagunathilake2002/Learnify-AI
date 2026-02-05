@@ -15,7 +15,7 @@
     const res = await fetch(`${API_URL}/auth/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password })
+      body: JSON.stringify({ email, password }) // ✅ backend will set role="student"
     });
 
     if (!res.ok) {
@@ -24,7 +24,7 @@
       return;
     }
 
-    message = "✅ Account created! Please login.";
+    message = "✅ Account created as student! Please login.";
     setTimeout(() => goto("/login"), 800);
   }
 </script>
@@ -35,7 +35,7 @@
 <br />
 <input type="password" placeholder="Password (8-72 chars)" bind:value={password} />
 <br />
-<button on:click={register}>Register</button>
+<button on:click={register} disabled={!email || !password}>Register</button>
 
 {#if message}
   <p style="color:green">{message}</p>

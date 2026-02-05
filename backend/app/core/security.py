@@ -12,13 +12,25 @@ JWT_SECRET = os.getenv("JWT_SECRET", "change-me")
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
 
+
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)
+
 
 def verify_password(password: str, hashed_password: str) -> bool:
     return pwd_context.verify(password, hashed_password)
 
-def create_access_token(subject: str) -> str:
+
+def create_access_token(subject: str, role: str) -> str:
+    """
+    Create JWT access token with role included
+    """
     expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    payload = {"sub": subject, "exp": expire}
+
+    payload = {
+        "sub": subject,   # user id
+        "role": role,     # student / instructor / admin
+        "exp": expire
+    }
+
     return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)

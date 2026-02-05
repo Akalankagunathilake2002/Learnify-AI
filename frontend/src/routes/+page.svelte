@@ -1,5 +1,11 @@
 <script lang="ts">
-  // no logic needed for home page
+  import { onMount } from "svelte";
+
+  let authed = false;
+
+  onMount(() => {
+    authed = !!localStorage.getItem("token");
+  });
 </script>
 
 <section class="hero">
@@ -17,7 +23,12 @@
 
     <div class="actions">
       <a href="/courses" class="btn primary">Explore Courses</a>
-      <a href="/login" class="btn secondary">Login</a>
+
+      {#if authed}
+        <a href="/me" class="btn secondary">My Profile</a>
+      {:else}
+        <a href="/login" class="btn secondary">Login</a>
+      {/if}
     </div>
   </div>
 </section>
@@ -28,12 +39,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(
-      135deg,
-      #0f2027,
-      #203a43,
-      #2c5364
-    );
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
     color: white;
     padding: 2rem;
   }
