@@ -1,5 +1,4 @@
 import os
-
 import stripe
 from fastapi import APIRouter, Request, HTTPException, Depends
 from sqlalchemy.orm import Session
@@ -10,16 +9,15 @@ from app.models.user import User
 
 router = APIRouter(prefix="/webhooks", tags=["webhooks"])
 
-STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")
+stripe.api_key = os.getenv("STRIPE_SECRET_KEY", "")
 STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")
-
-stripe.api_key = STRIPE_SECRET_KEY
-
 
 @router.post("/stripe", response_model=None)
 async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
     payload = await request.body()
     sig_header = request.headers.get("stripe-signature")
+    if not sig_header:
+        raise HTTPException(status_code=400, detail="Missing stripe-signature header")
 
     if not STRIPE_WEBHOOK_SECRET:
         raise HTTPException(status_code=500, detail="Stripe webhook secret not set")
@@ -36,7 +34,6 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
     event_type = event["type"]
     data = event["data"]["object"]
 
-    # ✅ 1) Checkout completed (subscription created)
     if event_type == "checkout.session.completed":
         metadata = data.get("metadata") or {}
         user_id_raw = metadata.get("user_id")
@@ -53,7 +50,6 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
                 user.stripe_subscription_id = subscription_id
                 db.commit()
 
-    # ✅ 2) Invoice paid (renewal successful)
     elif event_type == "invoice.paid":
         subscription_id = data.get("subscription")
         if subscription_id:
@@ -64,7 +60,6 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
                 user.is_premium = True
                 db.commit()
 
-    # ✅ 3) Subscription updated/deleted (handle cancellations)
     elif event_type in ("customer.subscription.deleted", "customer.subscription.updated"):
         sub_id = data.get("id")
         sub_status = data.get("status")

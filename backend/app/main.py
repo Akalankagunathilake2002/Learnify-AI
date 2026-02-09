@@ -11,6 +11,9 @@ from app.api.routes.progress import router as progress_router
 from app.api.routes.my_courses import router as my_router
 from app.api.routes import billing
 from app.api.routes import webhooks
+from app.api.routes import ai
+
+
 
 
 
@@ -33,7 +36,7 @@ app.include_router(progress_router)
 app.include_router(my_router)
 app.include_router(billing.router)
 app.include_router(webhooks.router)
-
+app.include_router(ai.router)
 
 
 @app.on_event("startup")

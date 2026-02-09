@@ -24,6 +24,11 @@
     <span style="margin: 0 10px;">|</span>
   <a href="/register">Register</a>
   {/if}
+
+  {#if $authed}
+  <a href="/ai">AI Tutor</a>
+{/if}
+
 </nav>
 
 <div style="padding: 16px;">
