@@ -6,8 +6,7 @@
   const API_URL = import.meta.env.PUBLIC_API_URL ?? "http://127.0.0.1:8000";
 
   // 🔴 PASTE YOUR BACKGROUND IMAGE URL HERE
-  const LOGIN_BG_IMAGE_URL = "https://i.pinimg.com/1200x/8b/ef/55/8bef5563705ba2e1d5f8fc38b84a5721.jpg";
-
+  const LOGIN_BG_IMAGE_URL = "https://www.protectuk.police.uk/sites/default/files/styles/large_hero_904x652/public/2023-08/Learning%20Homepage_0.jpg?h=1c27a152&itok=O3OCeP8f";
   let email = "";
   let password = "";
   let error: string | null = null;

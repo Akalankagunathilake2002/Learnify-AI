@@ -30,7 +30,7 @@ def create_course(
     db: Session = Depends(get_db),
     _=Depends(require_role("instructor", "admin")),  # ✅ only instructor/admin
 ):
-    course = Course(title=payload.title, description=payload.description)
+    course = Course(title=payload.title, description=payload.description, video_url=payload.video_url)
     db.add(course)
     db.commit()
     db.refresh(course)

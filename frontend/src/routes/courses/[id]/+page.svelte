@@ -16,7 +16,6 @@
   let createMsg: string | null = null;
 
   let enrollMsg: string | null = null;
-
   let progress: any = null;
 
   // ✅ role-based UI control
@@ -25,6 +24,26 @@
   function computeCanEdit() {
     const role = localStorage.getItem("role") ?? "student";
     canEdit = role === "instructor" || role === "admin";
+  }
+
+  // ✅ convert YouTube URL -> embed URL
+  function toYoutubeEmbed(url: string) {
+    if (!url) return "";
+
+    const cleaned = url.trim();
+
+    // youtu.be/VIDEO_ID
+    const short = cleaned.match(/youtu\.be\/([a-zA-Z0-9_-]+)/);
+    if (short) return `https://www.youtube.com/embed/${short[1]}`;
+
+    // youtube.com/watch?v=VIDEO_ID
+    const watch = cleaned.match(/[?&]v=([a-zA-Z0-9_-]+)/);
+    if (watch) return `https://www.youtube.com/embed/${watch[1]}`;
+
+    // already embed
+    if (cleaned.includes("youtube.com/embed/")) return cleaned;
+
+    return "";
   }
 
   async function loadProgress(courseId: string, token: string) {
@@ -39,12 +58,8 @@
     error = null;
 
     const token = localStorage.getItem("token");
-    if (!token) {
-      goto("/login");
-      return;
-    }
+    if (!token) return goto("/login");
 
-    // ✅ set canEdit based on role saved from /me
     computeCanEdit();
 
     const courseId = $page.params.id;
@@ -135,6 +150,25 @@
   <h1>{course.title}</h1>
   <p>{course.description}</p>
 
+  <!-- ✅ Course Video -->
+  {#if course?.video_url}
+    {@const embed = toYoutubeEmbed(course.video_url)}
+    {#if embed}
+      <h3>Course Video</h3>
+      <iframe
+        width="560"
+        height="315"
+        src={embed}
+        title="YouTube video player"
+        frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowfullscreen
+      />
+    {:else}
+      <p style="color:red">Invalid YouTube link</p>
+    {/if}
+  {/if}
+
   {#if progress}
     <p>
       Progress: {progress.completed_lessons}/{progress.total_lessons}
@@ -175,9 +209,7 @@
       <p>{createMsg}</p>
     {/if}
   {:else}
-    <p style="opacity:0.8">
-      🔒 Only instructors can create lessons.
-    </p>
+    <p style="opacity:0.8">🔒 Only instructors can create lessons.</p>
   {/if}
 
   <p style="margin-top:1rem">

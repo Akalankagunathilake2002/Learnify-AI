@@ -7,13 +7,43 @@
   let loading = true;
   let error: string | null = null;
   let courses: any[] = [];
-  let userRole: string | null = null;
+
+  let userRole: string = "";
   let actionMsg: string | null = null;
 
   // UI helpers
   let q = "";
   let filter: "all" | "published" | "draft" = "all";
   let sort: "newest" | "title" = "newest";
+
+  function normalizeRole(role: any) {
+    return String(role ?? "").toLowerCase().trim();
+  }
+
+  const canManage = () => userRole === "admin" || userRole === "instructor";
+
+  // ✅ YouTube thumbnail helper
+  function getYoutubeId(url: string) {
+    if (!url) return "";
+    const u = url.trim();
+
+    const short = u.match(/youtu\.be\/([a-zA-Z0-9_-]+)/);
+    if (short) return short[1];
+
+    const watch = u.match(/[?&]v=([a-zA-Z0-9_-]+)/);
+    if (watch) return watch[1];
+
+    const embed = u.match(/youtube\.com\/embed\/([a-zA-Z0-9_-]+)/);
+    if (embed) return embed[1];
+
+    return "";
+  }
+
+  function youtubeThumb(url: string) {
+    const id = getYoutubeId(url);
+    if (!id) return "";
+    return `https://img.youtube.com/vi/${id}/hqdefault.jpg`;
+  }
 
   async function loadCourses() {
     loading = true;
@@ -24,19 +54,34 @@
     if (!token) return goto("/login");
 
     try {
-      // 1) load user (role)
+      // ✅ 1) role
       const meRes = await fetch(`${API_URL}/users/me`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      if (!meRes.ok) throw new Error(`Me HTTP ${meRes.status}`);
-      const me = await meRes.json();
-      userRole = me.role;
 
-      // 2) load courses
+      if (!meRes.ok) {
+        if (meRes.status === 401) goto("/login");
+        throw new Error(`Me HTTP ${meRes.status}`);
+      }
+
+      const me = await meRes.json();
+      userRole = normalizeRole(me.role);
+
+      console.log("✅ Logged in role =", me.role, "=> normalized =", userRole);
+
+      // ✅ 2) courses
       const res = await fetch(`${API_URL}/courses`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      if (!res.ok) throw new Error(`Courses HTTP ${res.status}`);
+
+      if (!res.ok) {
+        // Important: don’t crash whole page; just show message
+        const txt = await res.text();
+        error = `Courses API blocked (HTTP ${res.status}). ${txt}`;
+        courses = [];
+        return;
+      }
+
       courses = await res.json();
     } catch (e: any) {
       error = e?.message ?? "Failed to load courses";
@@ -45,7 +90,14 @@
     }
   }
 
-  const canManage = () => userRole === "admin" || userRole === "instructor";
+  function goCreate() {
+    // ✅ do NOT disable button; just block navigation if not allowed
+    if (!canManage()) {
+      actionMsg = `🔒 Only instructors/admin can create courses. (Your role: ${userRole || "unknown"})`;
+      return;
+    }
+    goto("/courses/new");
+  }
 
   async function publish(courseId: number) {
     actionMsg = null;
@@ -85,7 +137,6 @@
     await loadCourses();
   }
 
-  // Derived list (no $derived needed)
   $: filtered = courses
     .filter((c) => {
       const matchesText =
@@ -100,10 +151,7 @@
     })
     .slice()
     .sort((a, b) => {
-      if (sort === "title") {
-        return String(a.title ?? "").localeCompare(String(b.title ?? ""));
-      }
-      // newest first if created_at exists, else keep stable
+      if (sort === "title") return String(a.title ?? "").localeCompare(String(b.title ?? ""));
       const ad = Date.parse(a.created_at ?? "") || 0;
       const bd = Date.parse(b.created_at ?? "") || 0;
       return bd - ad;
@@ -116,7 +164,6 @@
 </script>
 
 <div style="max-width: 1100px; margin: 34px auto; padding: 0 16px;">
-  <!-- Header row -->
   <div style="display:flex; justify-content:space-between; align-items:flex-end; gap:14px; flex-wrap:wrap;">
     <div>
       <div style="font-size: 12px; font-weight: 950; color: #0f766e; letter-spacing: 0.3px;">
@@ -128,345 +175,128 @@
       <p style="margin: 8px 0 0; color: rgba(15,23,42,0.65); font-weight: 650;">
         Browse courses, enroll, and learn faster with AI tools.
       </p>
+
+      <div style="margin-top:10px; font-weight:900; color: rgba(15,23,42,0.65);">
+        Role: <span style="color:#0f172a;">{userRole || "loading..."}</span>
+      </div>
     </div>
 
-    {#if canManage()}
-      <a
-        href="/courses/new"
-        style="
-          text-decoration:none;
-          padding: 12px 16px;
-          border-radius: 14px;
-          background: #10b981;
-          color: white;
-          font-weight: 950;
-          box-shadow: 0 14px 30px rgba(16,185,129,0.20);
-          display:inline-flex;
-          align-items:center;
-          gap:10px;
-        "
-      >
-        ➕ Create Course
-      </a>
-    {/if}
+    <!-- ✅ Always clickable -->
+    <button
+      on:click={goCreate}
+      style="
+        padding: 12px 16px;
+        border-radius: 14px;
+        background: {canManage() ? '#10b981' : 'rgba(15,23,42,0.10)'};
+        color: {canManage() ? 'white' : 'rgba(15,23,42,0.65)'};
+        font-weight: 950;
+        border: 1px solid rgba(15,23,42,0.10);
+        cursor: pointer;
+        display:inline-flex;
+        align-items:center;
+        gap:10px;
+      "
+      title={canManage() ? "Create a new course" : "Only instructors/admin can create"}
+    >
+      ➕ Create Course
+    </button>
   </div>
 
-  <!-- Stats chips -->
   <div style="margin-top: 14px; display:flex; gap:10px; flex-wrap:wrap;">
-    <span
-      style="
-        padding: 8px 12px;
-        border-radius: 999px;
-        background: rgba(255,255,255,0.85);
-        border: 1px solid rgba(15,23,42,0.10);
-        font-weight: 900;
-        color: rgba(15,23,42,0.70);
-      "
-    >
+    <span style="padding: 8px 12px; border-radius: 999px; background: rgba(255,255,255,0.85); border: 1px solid rgba(15,23,42,0.10); font-weight: 900; color: rgba(15,23,42,0.70);">
       Total: <span style="color:#0f172a;">{courses.length}</span>
     </span>
-
-    <span
-      style="
-        padding: 8px 12px;
-        border-radius: 999px;
-        background: rgba(16,185,129,0.10);
-        border: 1px solid rgba(16,185,129,0.22);
-        font-weight: 900;
-        color: #0f766e;
-      "
-    >
+    <span style="padding: 8px 12px; border-radius: 999px; background: rgba(16,185,129,0.10); border: 1px solid rgba(16,185,129,0.22); font-weight: 900; color: #0f766e;">
       Published: <span style="color:#0f172a;">{publishedCount()}</span>
     </span>
-
-    <span
-      style="
-        padding: 8px 12px;
-        border-radius: 999px;
-        background: rgba(14,165,233,0.10);
-        border: 1px solid rgba(14,165,233,0.16);
-        font-weight: 900;
-        color: rgba(15,23,42,0.72);
-      "
-    >
+    <span style="padding: 8px 12px; border-radius: 999px; background: rgba(14,165,233,0.10); border: 1px solid rgba(14,165,233,0.16); font-weight: 900; color: rgba(15,23,42,0.72);">
       Draft: <span style="color:#0f172a;">{draftCount()}</span>
     </span>
   </div>
 
-  <!-- Action message -->
   {#if actionMsg}
-    <div
-      style="
-        margin-top: 14px;
-        padding: 12px 14px;
-        border-radius: 16px;
-        background: rgba(255,255,255,0.85);
-        border: 1px solid rgba(15,23,42,0.10);
-        box-shadow: 0 14px 30px rgba(15,23,42,0.06);
-        font-weight: 850;
-        color: rgba(15,23,42,0.78);
-      "
-    >
+    <div style="margin-top: 14px; padding: 12px 14px; border-radius: 16px; background: rgba(255,255,255,0.85); border: 1px solid rgba(15,23,42,0.10); box-shadow: 0 14px 30px rgba(15,23,42,0.06); font-weight: 850; color: rgba(15,23,42,0.78);">
       {actionMsg}
     </div>
   {/if}
 
-  <!-- Controls -->
-  <div
-    style="
-      margin-top: 16px;
-      padding: 14px;
-      border-radius: 18px;
-      background: rgba(255,255,255,0.85);
-      border: 1px solid rgba(15,23,42,0.10);
-      box-shadow: 0 14px 30px rgba(15,23,42,0.06);
-      display:flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-    "
-  >
-    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; flex: 1;">
-      <input
-        placeholder="Search courses (title / description)…"
-        bind:value={q}
-        style="
-          flex: 1;
-          min-width: 240px;
-          padding: 12px 12px;
-          border-radius: 14px;
-          border: 1px solid rgba(15,23,42,0.12);
-          background: #f8fafc;
-          outline: none;
-          font-weight: 750;
-          color: rgba(15,23,42,0.80);
-        "
-      />
-
-      <select
-        bind:value={filter}
-        style="
-          padding: 12px 12px;
-          border-radius: 14px;
-          border: 1px solid rgba(15,23,42,0.12);
-          background: #ffffff;
-          outline: none;
-          font-weight: 850;
-          color: rgba(15,23,42,0.75);
-        "
-      >
-        <option value="all">All</option>
-        <option value="published">Published</option>
-        <option value="draft">Draft</option>
-      </select>
-
-      <select
-        bind:value={sort}
-        style="
-          padding: 12px 12px;
-          border-radius: 14px;
-          border: 1px solid rgba(15,23,42,0.12);
-          background: #ffffff;
-          outline: none;
-          font-weight: 850;
-          color: rgba(15,23,42,0.75);
-        "
-      >
-        <option value="newest">Sort: Newest</option>
-        <option value="title">Sort: Title</option>
-      </select>
-    </div>
-
-    <button
-      on:click={loadCourses}
-      disabled={loading}
-      style="
-        padding: 12px 14px;
-        border-radius: 14px;
-        border: 1px solid rgba(16,185,129,0.22);
-        background: rgba(16,185,129,0.12);
-        color: #0f766e;
-        font-weight: 950;
-        cursor: pointer;
-        opacity: {loading ? 0.6 : 1};
-      "
-    >
-      🔄 Refresh
-    </button>
-  </div>
-
-  <!-- Content -->
   {#if loading}
-    <div
-      style="
-        margin-top: 16px;
-        padding: 18px;
-        border-radius: 18px;
-        background: rgba(255,255,255,0.85);
-        border: 1px solid rgba(15,23,42,0.10);
-        box-shadow: 0 14px 30px rgba(15,23,42,0.06);
-        font-weight: 850;
-        color: rgba(15,23,42,0.70);
-      "
-    >
+    <div style="margin-top: 16px; padding: 18px; border-radius: 18px; background: rgba(255,255,255,0.85); border: 1px solid rgba(15,23,42,0.10); box-shadow: 0 14px 30px rgba(15,23,42,0.06); font-weight: 850; color: rgba(15,23,42,0.70);">
       Loading courses…
     </div>
 
   {:else if error}
-    <div
-      style="
-        margin-top: 16px;
-        padding: 18px;
-        border-radius: 18px;
-        background: rgba(239,68,68,0.08);
-        border: 1px solid rgba(239,68,68,0.25);
-        color: #b91c1c;
-        font-weight: 900;
-      "
-    >
+    <div style="margin-top: 16px; padding: 18px; border-radius: 18px; background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25); color: #b91c1c; font-weight: 900;">
       {error}
     </div>
 
-  {:else if filtered.length === 0}
-    <div
-      style="
-        margin-top: 16px;
-        padding: 18px;
-        border-radius: 18px;
-        background: rgba(255,255,255,0.85);
-        border: 1px solid rgba(15,23,42,0.10);
-        box-shadow: 0 14px 30px rgba(15,23,42,0.06);
-        color: rgba(15,23,42,0.70);
-        font-weight: 800;
-      "
-    >
-      No courses found. Try another search/filter.
-    </div>
-
   {:else}
-    <!-- Cards grid -->
-    <div
-      style="
-        margin-top: 16px;
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 14px;
-      "
-    >
+    <div style="margin-top: 16px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px;">
       {#each filtered as course}
-        <div
-          style="
-            border-radius: 20px;
-            background: rgba(255,255,255,0.88);
-            border: 1px solid rgba(15,23,42,0.10);
-            box-shadow: 0 14px 30px rgba(15,23,42,0.07);
-            padding: 14px;
-            display:flex;
-            flex-direction: column;
-            gap: 10px;
-            min-height: 220px;
-          "
-        >
-          <!-- Top row -->
-          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
-            <a
-              href={`/courses/${course.id}`}
-              style="
-                text-decoration:none;
-                color:#0f172a;
-                font-weight: 950;
-                font-size: 16px;
-                line-height: 1.2;
-              "
-            >
-              {course.title}
+        {@const thumb = youtubeThumb(course.video_url ?? "")}
+
+        <div style="border-radius: 20px; background: rgba(255,255,255,0.88); border: 1px solid rgba(15,23,42,0.10); box-shadow: 0 14px 30px rgba(15,23,42,0.07); overflow:hidden; display:flex; flex-direction: column; min-height: 260px;">
+          {#if thumb}
+            <a href={`/courses/${course.id}`} style="text-decoration:none;">
+              <img src={thumb} alt="Course video thumbnail" style="width:100%; height:160px; object-fit:cover; display:block;" loading="lazy" />
             </a>
+          {:else}
+            <div style="height:160px; background: linear-gradient(135deg, rgba(16,185,129,0.12), rgba(14,165,233,0.10)); display:flex; align-items:center; justify-content:center; color: rgba(15,23,42,0.55); font-weight: 900;">
+              No video
+            </div>
+          {/if}
 
-            <span
-              style="
-                display:inline-block;
-                padding: 6px 10px;
-                border-radius: 999px;
-                font-weight: 950;
-                font-size: 12px;
-                background: {course.status === 'published' ? 'rgba(16,185,129,0.14)' : 'rgba(239,68,68,0.10)'};
-                border: 1px solid {course.status === 'published' ? 'rgba(16,185,129,0.22)' : 'rgba(239,68,68,0.22)'};
-                color: {course.status === 'published' ? '#0f766e' : '#b91c1c'};
-              "
-            >
-              {course.status}
-            </span>
-          </div>
+          <div style="padding: 14px; display:flex; flex-direction: column; gap: 10px; flex:1;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
+              <a href={`/courses/${course.id}`} style="text-decoration:none; color:#0f172a; font-weight: 950; font-size: 16px; line-height: 1.2;">
+                {course.title}
+              </a>
 
-          <!-- Description -->
-          <div style="color: rgba(15,23,42,0.68); font-weight: 650; line-height: 1.6;">
-            {course.description}
-          </div>
-
-          <!-- Meta row -->
-          <div style="display:flex; gap:10px; flex-wrap:wrap; color: rgba(15,23,42,0.60); font-weight: 850; font-size: 13px;">
-            <span style="padding: 6px 10px; border-radius: 999px; background: rgba(15,23,42,0.05); border: 1px solid rgba(15,23,42,0.08);">
-              🆔 #{course.id}
-            </span>
-
-            {#if course.category}
-              <span style="padding: 6px 10px; border-radius: 999px; background: rgba(14,165,233,0.08); border: 1px solid rgba(14,165,233,0.14);">
-                🏷 {course.category}
+              <span
+                style="
+                  display:inline-block;
+                  padding: 6px 10px;
+                  border-radius: 999px;
+                  font-weight: 950;
+                  font-size: 12px;
+                  background: {course.status === 'published' ? 'rgba(16,185,129,0.14)' : 'rgba(239,68,68,0.10)'};
+                  border: 1px solid {course.status === 'published' ? 'rgba(16,185,129,0.22)' : 'rgba(239,68,68,0.22)'};
+                  color: {course.status === 'published' ? '#0f766e' : '#b91c1c'};
+                "
+              >
+                {course.status}
               </span>
-            {/if}
-          </div>
+            </div>
 
-          <!-- Spacer -->
-          <div style="flex: 1;"></div>
+            <div style="color: rgba(15,23,42,0.68); font-weight: 650; line-height: 1.6;">
+              {course.description ?? ""}
+            </div>
 
-          <!-- Actions -->
-          <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between;">
-            <a
-              href={`/courses/${course.id}`}
-              style="
-                text-decoration:none;
-                font-weight: 950;
-                color: #0f766e;
-              "
-            >
-              View →
-            </a>
+            <div style="display:flex; gap:10px; flex-wrap:wrap; color: rgba(15,23,42,0.60); font-weight: 850; font-size: 13px;">
+              <span style="padding: 6px 10px; border-radius: 999px; background: rgba(15,23,42,0.05); border: 1px solid rgba(15,23,42,0.08);">
+                🆔 #{course.id}
+              </span>
+            </div>
 
-            {#if canManage()}
-              {#if course.status === "draft"}
-                <button
-                  on:click={() => publish(course.id)}
-                  style="
-                    padding: 10px 12px;
-                    border-radius: 14px;
-                    border: 1px solid rgba(16,185,129,0.24);
-                    background: #10b981;
-                    color: white;
-                    font-weight: 950;
-                    cursor: pointer;
-                    box-shadow: 0 14px 30px rgba(16,185,129,0.18);
-                  "
-                >
-                  Publish
-                </button>
-              {:else}
-                <button
-                  on:click={() => unpublish(course.id)}
-                  style="
-                    padding: 10px 12px;
-                    border-radius: 14px;
-                    border: 1px solid rgba(239,68,68,0.24);
-                    background: rgba(239,68,68,0.10);
-                    color: #b91c1c;
-                    font-weight: 950;
-                    cursor: pointer;
-                  "
-                >
-                  Unpublish
-                </button>
+            <div style="flex: 1;"></div>
+
+            <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between;">
+              <a href={`/courses/${course.id}`} style="text-decoration:none; font-weight: 950; color: #0f766e;">
+                View →
+              </a>
+
+              {#if canManage()}
+                {#if course.status === "draft"}
+                  <button on:click={() => publish(course.id)} style="padding: 10px 12px; border-radius: 14px; border: 1px solid rgba(16,185,129,0.24); background: #10b981; color: white; font-weight: 950; cursor: pointer;">
+                    Publish
+                  </button>
+                {:else}
+                  <button on:click={() => unpublish(course.id)} style="padding: 10px 12px; border-radius: 14px; border: 1px solid rgba(239,68,68,0.24); background: rgba(239,68,68,0.10); color: #b91c1c; font-weight: 950; cursor: pointer;">
+                    Unpublish
+                  </button>
+                {/if}
               {/if}
-            {/if}
+            </div>
           </div>
         </div>
       {/each}

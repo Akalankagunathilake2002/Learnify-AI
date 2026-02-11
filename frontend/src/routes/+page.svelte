@@ -12,16 +12,6 @@
   let adIndex = 0;
   let timer: number | null = null;
 
-  onMount(() => {
-    timer = window.setInterval(() => {
-      adIndex = (adIndex + 1) % ads.length;
-    }, 2000);
-  });
-
-  onDestroy(() => {
-    if (timer) window.clearInterval(timer);
-  });
-
   // ✅ Paste your 10 course image URLs here
   const courseImages = [
     "https://i.ytimg.com/vi/MaF8kRbHbi0/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLCEj3pdiE8FxvGxhk-lcJAaL95xvw",
@@ -53,18 +43,96 @@
     { name: "Tharushi (Intern)", text: "Smart Notes + Listen Mode is perfect when I travel. Feels like Coursera but simpler.", stars: "★★★★★" },
     { name: "Kasun (Developer)", text: "Great course path. SvelteKit + FastAPI project flow is super clean and easy to follow.", stars: "★★★★☆" }
   ];
+
+  // ✅ Small promo banner (dismissible)
+  let showBanner = true;
+
+  const bannerImages = [
+    "https://rollaacademydubai.com/wp-content/uploads/2020/06/Digital-Marketing-Course-in-Dubai.png",
+    "https://aclm.in/wp-content/uploads/2021/08/Python-Training.jpg",
+    "https://i.ytimg.com/vi/NG9pHNHreME/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLCqNYRRzNuZ86f0dBf3pa0u0HN1Sg",
+    "https://www.daac.in/images/course/49f1f50fcfd776009ced920c43fd2a1b964741939-nodeBg.jpg",
+    "https://dtmvamahs40ux.cloudfront.net/public/seo-image/seo-image-893-free-ui-ux-course.webp",
+    "https://tanducits.com/images/banner-excel-tanducits.jpg",
+    "https://eduwebcoorporatemk.blob.core.windows.net/edu-mk/2025/02/Cisco-Training-Partner-01.png"
+  ];
+
+  let bannerIndex = 0;
+  let bannerTimer: number | null = null;
+
+  function closeBanner() {
+    showBanner = false;
+  }
+
+  // ✅ Certificates (popup)
+  // 🔴 Replace these URLs with your certificate image URLs later
+  const certificates = [
+    {
+      title: "AI for Beginners Certificate",
+      provider: "Learnify AI",
+      img: "https://images.unsplash.com/photo-1553877522-43269d4ea984?auto=format&fit=crop&w=1400&q=80"
+    },
+    {
+      title: "DevOps Foundations Certificate",
+      provider: "Learnify AI",
+      img: "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1400&q=80"
+    },
+    {
+      title: "Backend Mastery Certificate",
+      provider: "Learnify AI",
+      img: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1400&q=80"
+    }
+  ];
+
+  let certOpen = false;
+  let activeCert: any = null;
+
+  function openCert(c: any) {
+    activeCert = c;
+    certOpen = true;
+  }
+
+  function closeCert() {
+    certOpen = false;
+    activeCert = null;
+  }
+
+  onMount(() => {
+    timer = window.setInterval(() => {
+      adIndex = (adIndex + 1) % ads.length;
+    }, 2000);
+
+    bannerTimer = window.setInterval(() => {
+      bannerIndex = (bannerIndex + 1) % bannerImages.length;
+    }, 3000);
+  });
+
+  onDestroy(() => {
+    if (timer) window.clearInterval(timer);
+    if (bannerTimer) window.clearInterval(bannerTimer);
+  });
 </script>
 
-<section style="padding: 26px 0 34px;">
+<!-- ✅ Mint background (less white, more theme) -->
+<section
+  style="
+    padding: 26px 0 34px;
+    background:
+      radial-gradient(900px 520px at 10% 10%, rgba(16,185,129,0.16), transparent 60%),
+      radial-gradient(900px 520px at 90% 12%, rgba(34,197,94,0.12), transparent 60%),
+      linear-gradient(180deg, #f3fbf7 0%, #eef9f4 55%, #f1f5f9 100%);
+    border-radius: 22px;
+  "
+>
   <!-- Rotating Ad bar (2s) -->
   <div
     style="
       border-radius: 18px;
       overflow: hidden;
       border: 1px solid rgba(15,23,42,0.08);
-      background: linear-gradient(135deg, rgba(16,185,129,0.18), rgba(14,165,233,0.12));
-      box-shadow: 0 14px 30px rgba(15,23,42,0.08);
-      margin-bottom: 22px;
+      background: linear-gradient(135deg, rgba(16,185,129,0.22), rgba(14,165,233,0.12));
+      box-shadow: 0 14px 30px rgba(15,23,42,0.10);
+      margin-bottom: 18px;
     "
   >
     <div
@@ -75,7 +143,7 @@
         justify-content: space-between;
         gap: 10px;
         flex-wrap: wrap;
-        background: rgba(255,255,255,0.65);
+        background: rgba(255,255,255,0.72);
       "
     >
       <div style="display:flex; align-items:center; gap:10px;">
@@ -85,15 +153,15 @@
             font-weight: 950;
             padding: 5px 10px;
             border-radius: 999px;
-            background: rgba(16,185,129,0.14);
-            border: 1px solid rgba(16,185,129,0.22);
+            background: rgba(16,185,129,0.16);
+            border: 1px solid rgba(16,185,129,0.26);
             color: #0f766e;
           "
         >
           PROMO
         </span>
 
-        <span style="font-weight: 900; color: rgba(15,23,42,0.78);">
+        <span style="font-weight: 950; color: rgba(15,23,42,0.82);">
           {ads[adIndex]}
         </span>
       </div>
@@ -106,8 +174,8 @@
           color: #0f766e;
           padding: 8px 12px;
           border-radius: 999px;
-          background: rgba(16,185,129,0.12);
-          border: 1px solid rgba(16,185,129,0.22);
+          background: rgba(16,185,129,0.14);
+          border: 1px solid rgba(16,185,129,0.26);
         "
       >
         See Plans →
@@ -115,48 +183,110 @@
     </div>
   </div>
 
+  {#if showBanner}
+    <div
+      style="
+        position: relative;
+        margin-bottom: 18px;
+        border-radius: 18px;
+        overflow: hidden;
+        border: 1px solid rgba(15,23,42,0.12);
+        box-shadow: 0 16px 36px rgba(15,23,42,0.12);
+        background: rgba(255,255,255,0.88);
+      "
+    >
+      <button
+        on:click={closeBanner}
+        style="
+          position:absolute;
+          top: 10px;
+          right: 10px;
+          z-index: 5;
+          border: none;
+          background: rgba(0,0,0,0.55);
+          color: white;
+          font-size: 14px;
+          font-weight: 900;
+          width: 28px;
+          height: 28px;
+          border-radius: 999px;
+          cursor: pointer;
+        "
+        aria-label="Close banner"
+      >
+        ✕
+      </button>
+
+      <img
+        src={bannerImages[bannerIndex]}
+        alt="Learnify promotion"
+        style="
+          width: 100%;
+          height: 240px;
+          object-fit: cover;
+          display: block;
+        "
+      />
+
+      <div
+        style="
+          position:absolute;
+          left: 0;
+          bottom: 0;
+          width: 100%;
+          padding: 10px 14px;
+          background: linear-gradient(to top, rgba(0,0,0,0.65), rgba(0,0,0,0));
+          color: white;
+          font-weight: 950;
+          letter-spacing: 0.3px;
+        "
+      >
+        🚀 New Featured Learning Content Available Now
+      </div>
+    </div>
+  {/if}
+
   <!-- HERO SECTION -->
   <div
     style="
       display: grid;
       grid-template-columns: 1.15fr 0.85fr;
-      gap: 28px;
+      gap: 26px;
       align-items: center;
-      padding: 10px 0 12px;
+      padding: 8px 6px 10px;
     "
   >
-    <!-- Left content -->
     <div>
       <h1
         style="
-          margin: 0 0 14px 0;
-          font-size: 56px;
+          margin: 0 0 12px 0;
+          font-size: 54px;
           line-height: 1.06;
-          font-weight: 950;
+          font-weight: 980;
           letter-spacing: -1px;
           color: #0f172a;
         "
       >
-        Up Your <span style="color:#10b981;">Skills</span><br />
-        To <span style="color:#10b981;">Advance</span> Your<br />
-        <span style="color:#10b981;">Career</span> Path
+        Learn <span style="color:#0f766e;">Smarter</span>,<br />
+        Build <span style="color:#10b981;">Skills</span>,<br />
+        Get <span style="color:#0f766e;">Hired</span>
       </h1>
 
       <p
         style="
-          margin: 0 0 22px 0;
+          margin: 0 0 18px 0;
           max-width: 580px;
           font-size: 16px;
           line-height: 1.7;
-          color: rgba(15,23,42,0.70);
+          color: rgba(15,23,42,0.72);
           font-weight: 650;
         "
       >
-        Learn with structured courses + AI tools. Ask questions, generate quizzes,
-        create smart notes, and study faster with Learnify AI.
+        Structured courses + AI learning tools (Smart Notes, Quizzes, Listen Mode).
+        Faster studying for exams + internships.
       </p>
 
-      <div style="display:flex; gap:14px; flex-wrap:wrap; margin-bottom: 18px;">
+      <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom: 14px;">
         <a
           href="/courses"
           style="
@@ -165,12 +295,12 @@
             border-radius: 14px;
             background: #10b981;
             color: white;
-            font-weight: 950;
-            box-shadow: 0 16px 34px rgba(16,185,129,0.22);
+            font-weight: 980;
+            box-shadow: 0 16px 34px rgba(16,185,129,0.26);
             display: inline-block;
           "
         >
-          Get Started
+          Explore Courses
         </a>
 
         <a
@@ -179,83 +309,39 @@
             text-decoration:none;
             padding: 14px 22px;
             border-radius: 14px;
-            background: rgba(16,185,129,0.12);
+            background: rgba(16,185,129,0.14);
             border: 1px solid rgba(16,185,129,0.28);
             color: #0f766e;
-            font-weight: 950;
+            font-weight: 980;
             display: inline-block;
           "
         >
-          Get free trial
+          Start Free Trial
         </a>
       </div>
 
-      <div
-        style="
-          display:flex;
-          gap: 20px;
-          flex-wrap: wrap;
-          color: rgba(15,23,42,0.62);
-          font-weight: 800;
-        "
-      >
-        <div style="display:flex; align-items:center; gap:8px;">
-          <span>💬</span><span>Public Speaking</span>
-        </div>
-        <div style="display:flex; align-items:center; gap:8px;">
-          <span>💼</span><span>Career-Oriented</span>
-        </div>
-        <div style="display:flex; align-items:center; gap:8px;">
-          <span>💡</span><span>Creative Thinking</span>
-        </div>
-      </div>
-
-      <div style="margin-top: 18px; display:flex; gap:10px; flex-wrap: wrap;">
-        <span style="padding: 8px 12px; border-radius: 999px; background: rgba(255,255,255,0.75); border: 1px solid rgba(15,23,42,0.10); font-weight: 900; color: rgba(15,23,42,0.70);">
-          ✅ AI Tutor
-        </span>
-        <span style="padding: 8px 12px; border-radius: 999px; background: rgba(255,255,255,0.75); border: 1px solid rgba(15,23,42,0.10); font-weight: 900; color: rgba(15,23,42,0.70);">
-          📄 Smart Notes
-        </span>
-        <span style="padding: 8px 12px; border-radius: 999px; background: rgba(255,255,255,0.75); border: 1px solid rgba(15,23,42,0.10); font-weight: 900; color: rgba(15,23,42,0.70);">
-          ✅ Quiz Generator
-        </span>
-        <span style="padding: 8px 12px; border-radius: 999px; background: rgba(255,255,255,0.75); border: 1px solid rgba(15,23,42,0.10); font-weight: 900; color: rgba(15,23,42,0.70);">
-          🎧 Listen Mode
-        </span>
-      </div>
-
-      <div
-        style="
-          margin-top: 26px;
-          display:flex;
-          gap: 18px;
-          flex-wrap: wrap;
-          align-items: center;
-          color: rgba(15,23,42,0.40);
-          font-weight: 900;
-          letter-spacing: 0.3px;
-        "
-      >
-        <span style="font-size: 20px; opacity:0.7;">duolingo</span>
-        <span style="font-size: 20px; opacity:0.7;">Codecov</span>
-        <span style="font-size: 20px; opacity:0.7;">UserTesting</span>
-        <span style="font-size: 20px; opacity:0.7;">magic leap</span>
+      <div style="display:flex; gap:10px; flex-wrap: wrap;">
+        <span style="padding: 8px 12px; border-radius: 999px; background: rgba(255,255,255,0.82); border: 1px solid rgba(15,23,42,0.10); font-weight: 900; color: rgba(15,23,42,0.75);">✅ AI Tutor</span>
+        <span style="padding: 8px 12px; border-radius: 999px; background: rgba(255,255,255,0.82); border: 1px solid rgba(15,23,42,0.10); font-weight: 900; color: rgba(15,23,42,0.75);">📄 Smart Notes</span>
+        <span style="padding: 8px 12px; border-radius: 999px; background: rgba(255,255,255,0.82); border: 1px solid rgba(15,23,42,0.10); font-weight: 900; color: rgba(15,23,42,0.75);">🎧 Listen Mode</span>
       </div>
     </div>
 
-    <!-- Right: Art -->
+    <!-- Right -->
     <div style="display:flex; justify-content:center;">
-      <div style="position:relative; width:min(520px,100%); height:520px;">
-        <div style="position:absolute; inset: 6px; border-radius: 50%; border: 2px solid rgba(16,185,129,0.16);"></div>
-        <div style="position:absolute; inset: 28px; border-radius: 50%; border: 2px solid rgba(16,185,129,0.10);"></div>
-
+      <div
+        style="
+          position:relative;
+          width:min(520px,100%);
+          height:520px;
+        "
+      >
         <div
           style="
             position:absolute;
-            inset: 40px;
+            inset: 38px;
             border-radius: 50%;
-            background: #10b981;
+            background: linear-gradient(135deg, rgba(16,185,129,0.95), rgba(34,197,94,0.70));
             box-shadow: 0 30px 60px rgba(16,185,129,0.20);
           "
         ></div>
@@ -263,10 +349,11 @@
         <div
           style="
             position:absolute;
-            inset: 80px 90px 70px 90px;
+            inset: 78px 92px 70px 92px;
             border-radius: 26px;
             overflow:hidden;
-            background: white;
+            background: rgba(255,255,255,0.90);
+            border: 1px solid rgba(15,23,42,0.10);
             box-shadow: 0 24px 55px rgba(15,23,42,0.18);
           "
         >
@@ -280,7 +367,7 @@
         <div
           style="
             position:absolute;
-            left: -10px;
+            left: -6px;
             top: 160px;
             display:flex;
             align-items:center;
@@ -293,22 +380,11 @@
             min-width: 210px;
           "
         >
-          <div
-            style="
-              width: 44px;
-              height: 44px;
-              border-radius: 14px;
-              display:grid;
-              place-items:center;
-              background: rgba(16,185,129,0.12);
-              border: 1px solid rgba(16,185,129,0.20);
-              font-size: 18px;
-            "
-          >
+          <div style="width: 44px; height: 44px; border-radius: 14px; display:grid; place-items:center; background: rgba(16,185,129,0.14); border: 1px solid rgba(16,185,129,0.22); font-size: 18px;">
             📘
           </div>
           <div>
-            <div style="font-weight:950; font-size:20px; line-height:1;">2K+</div>
+            <div style="font-weight:980; font-size:20px; line-height:1;">2K+</div>
             <div style="font-size:13px; color: rgba(15,23,42,0.65); font-weight:800; margin-top:3px;">Video Courses</div>
           </div>
         </div>
@@ -329,13 +405,12 @@
             min-width: 200px;
           "
         >
-          <div style="width: 44px; height: 44px; border-radius: 50%; background: rgba(15,23,42,0.06); position: relative; overflow: hidden;">
-            <div style="position:absolute; inset:0; background: conic-gradient(#10b981 0 65%, transparent 65% 100%); border-radius:50%;"></div>
-            <div style="position:absolute; inset: 7px; background:white; border-radius:50%;"></div>
+          <div style="width: 44px; height: 44px; border-radius: 14px; display:grid; place-items:center; background: rgba(14,165,233,0.12); border: 1px solid rgba(14,165,233,0.18); font-size: 18px;">
+            🎯
           </div>
           <div>
-            <div style="font-weight:950; font-size:20px; line-height:1;">5K+</div>
-            <div style="font-size:13px; color: rgba(15,23,42,0.65); font-weight:800; margin-top:3px;">Online Courses</div>
+            <div style="font-weight:980; font-size:20px; line-height:1;">5K+</div>
+            <div style="font-size:13px; color: rgba(15,23,42,0.65); font-weight:800; margin-top:3px;">Practice Quizzes</div>
           </div>
         </div>
 
@@ -355,39 +430,26 @@
             min-width: 200px;
           "
         >
-          <div
-            style="
-              width: 44px;
-              height: 44px;
-              border-radius: 14px;
-              display:grid;
-              place-items:center;
-              background: rgba(16,185,129,0.12);
-              border: 1px solid rgba(16,185,129,0.20);
-              font-size: 18px;
-            "
-          >
-            👨‍🏫
+          <div style="width: 44px; height: 44px; border-radius: 14px; display:grid; place-items:center; background: rgba(16,185,129,0.14); border: 1px solid rgba(16,185,129,0.22); font-size: 18px;">
+            🏆
           </div>
           <div>
-            <div style="font-weight:950; font-size:20px; line-height:1;">250+</div>
-            <div style="font-size:13px; color: rgba(15,23,42,0.65); font-weight:800; margin-top:3px;">Tutors</div>
+            <div style="font-weight:980; font-size:20px; line-height:1;">Certificates</div>
+            <div style="font-size:13px; color: rgba(15,23,42,0.65); font-weight:800; margin-top:3px;">After completion</div>
           </div>
         </div>
-
-        <div style="position:absolute; left: 110px; bottom: 120px; width: 26px; height: 26px; border-radius: 50%; background: rgba(16,185,129,0.95); box-shadow: 0 18px 35px rgba(16,185,129,0.20);"></div>
       </div>
     </div>
   </div>
 
-  <div style="height: 1px; background: rgba(15,23,42,0.08); margin: 30px 0;"></div>
+  <div style="height: 1px; background: rgba(15,23,42,0.10); margin: 26px 0;"></div>
 
-  <!-- Popular Courses with Images -->
+  <!-- Popular Courses -->
   <section>
     <div style="display:flex; align-items:end; justify-content:space-between; gap:12px; flex-wrap:wrap;">
       <div>
-        <div style="font-size: 13px; font-weight: 950; color: #0f766e;">POPULAR</div>
-        <h2 style="margin: 6px 0 0; font-size: 28px; font-weight: 950; color:#0f172a;">Popular Courses</h2>
+        <div style="font-size: 13px; font-weight: 980; color: #0f766e;">POPULAR</div>
+        <h2 style="margin: 6px 0 0; font-size: 28px; font-weight: 980; color:#0f172a;">Popular Courses</h2>
         <p style="margin: 8px 0 0; color: rgba(15,23,42,0.65); font-weight: 650;">Start with the most-loved learning paths.</p>
       </div>
 
@@ -395,12 +457,12 @@
         href="/courses"
         style="
           text-decoration:none;
-          font-weight: 950;
+          font-weight: 980;
           color: #0f766e;
           padding: 10px 14px;
           border-radius: 14px;
-          background: rgba(16,185,129,0.12);
-          border: 1px solid rgba(16,185,129,0.22);
+          background: rgba(16,185,129,0.14);
+          border: 1px solid rgba(16,185,129,0.26);
         "
       >
         View all →
@@ -419,67 +481,58 @@
         <div
           style="
             border-radius: 18px;
-            background: rgba(255,255,255,0.85);
-            border: 1px solid rgba(15,23,42,0.10);
-            box-shadow: 0 14px 30px rgba(15,23,42,0.07);
+            background: rgba(255,255,255,0.88);
+            border: 1px solid rgba(15,23,42,0.12);
+            box-shadow: 0 14px 30px rgba(15,23,42,0.08);
             padding: 14px;
           "
         >
-          <!-- Image -->
           <div
             style="
               width: 100%;
               height: 140px;
               border-radius: 16px;
               overflow: hidden;
-              border: 1px solid rgba(15,23,42,0.10);
-              background: rgba(15,23,42,0.04);
+              border: 1px solid rgba(15,23,42,0.12);
+              background: rgba(15,23,42,0.06);
             "
           >
-            <img
-              src={c.img}
-              alt={c.title}
-              style="width:100%; height:100%; object-fit:cover; display:block;"
-            />
+            <img src={c.img} alt={c.title} style="width:100%; height:100%; object-fit:cover; display:block;" />
           </div>
 
-          <!-- Tag + rating -->
           <div style="margin-top: 10px; display:flex; justify-content:space-between; align-items:center; gap:10px;">
             <span
               style="
                 font-size: 12px;
-                font-weight: 950;
+                font-weight: 980;
                 padding: 5px 10px;
                 border-radius: 999px;
-                background: rgba(14,165,233,0.10);
-                border: 1px solid rgba(14,165,233,0.16);
-                color: rgba(15,23,42,0.72);
+                background: rgba(14,165,233,0.12);
+                border: 1px solid rgba(14,165,233,0.18);
+                color: rgba(15,23,42,0.76);
               "
             >
               {c.tag}
             </span>
-            <span style="font-weight: 950; color: rgba(15,23,42,0.72); font-size: 12px;">
+            <span style="font-weight: 980; color: rgba(15,23,42,0.76); font-size: 12px;">
               ⭐ {c.rating}
             </span>
           </div>
 
-          <div style="margin-top: 10px; font-weight: 950; font-size: 16px; color:#0f172a;">
+          <div style="margin-top: 10px; font-weight: 980; font-size: 16px; color:#0f172a;">
             {c.title}
           </div>
 
-          <div style="margin-top: 6px; color: rgba(15,23,42,0.62); font-weight: 700; font-size: 13px;">
+          <div style="margin-top: 6px; color: rgba(15,23,42,0.65); font-weight: 700; font-size: 13px;">
             {c.level}
           </div>
 
           <div style="margin-top: 12px; display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;">
-            <span style="font-weight: 900; color: rgba(15,23,42,0.62); font-size: 13px;">⏱ {c.hours}</span>
-            <span style="font-weight: 900; color: rgba(15,23,42,0.62); font-size: 13px;">📚 Lessons</span>
+            <span style="font-weight: 900; color: rgba(15,23,42,0.65); font-size: 13px;">⏱ {c.hours}</span>
+            <span style="font-weight: 900; color: rgba(15,23,42,0.65); font-size: 13px;">📚 Lessons</span>
           </div>
 
-          <a
-            href="/courses"
-            style="display:inline-block; margin-top: 12px; text-decoration:none; font-weight: 950; color: #0f766e;"
-          >
+          <a href="/courses" style="display:inline-block; margin-top: 12px; text-decoration:none; font-weight: 980; color: #0f766e;">
             Start learning →
           </a>
         </div>
@@ -487,67 +540,17 @@
     </div>
   </section>
 
-  <!-- Why Learnify -->
-  <section style="margin-top: 32px;">
-    <h2 style="margin: 0; font-size: 28px; font-weight: 950; color:#0f172a;">Why Learnify AI?</h2>
-    <p style="margin: 8px 0 0; color: rgba(15,23,42,0.65); font-weight: 650;">
-      Built for students and interns — focus on exams + real projects.
-    </p>
-
-    <div
-      style="
-        margin-top: 16px;
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 14px;
-      "
-    >
-      {#each [
-        { t: "AI Tutor", d: "Ask questions & get clear explanations instantly.", i: "🤖" },
-        { t: "Smart Notes", d: "Generate exam-ready summaries in seconds.", i: "📄" },
-        { t: "Quiz Generator", d: "Create MCQs and practice anytime.", i: "✅" },
-        { t: "Listen Mode", d: "Turn notes into audio and learn on the go.", i: "🎧" },
-        { t: "Course Paths", d: "Follow structured roadmaps for career skills.", i: "🛣️" },
-        { t: "Premium Upgrade", d: "Unlock advanced features for faster learning.", i: "⭐" }
-      ] as f}
-        <div
-          style="
-            border-radius: 18px;
-            background: rgba(255,255,255,0.85);
-            border: 1px solid rgba(15,23,42,0.10);
-            box-shadow: 0 14px 30px rgba(15,23,42,0.06);
-            padding: 14px;
-          "
-        >
-          <div
-            style="
-              width: 46px;
-              height: 46px;
-              border-radius: 16px;
-              display:grid;
-              place-items:center;
-              background: rgba(16,185,129,0.12);
-              border: 1px solid rgba(16,185,129,0.22);
-              font-size: 18px;
-            "
-          >
-            {f.i}
-          </div>
-          <div style="margin-top: 10px; font-weight: 950; color:#0f172a;">{f.t}</div>
-          <div style="margin-top: 6px; color: rgba(15,23,42,0.65); font-weight: 650; line-height: 1.6;">
-            {f.d}
-          </div>
-        </div>
-      {/each}
+  <!-- Certificates -->
+  <section style="margin-top: 30px;">
+    <div style="display:flex; align-items:end; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+      <div>
+        <div style="font-size: 13px; font-weight: 980; color: #0f766e;">CERTIFICATES</div>
+        <h2 style="margin: 6px 0 0; font-size: 28px; font-weight: 980; color:#0f172a;">Earn Certificates</h2>
+        <p style="margin: 8px 0 0; color: rgba(15,23,42,0.65); font-weight: 650;">
+          Complete a course and receive a shareable certificate.
+        </p>
+      </div>
     </div>
-  </section>
-
-  <!-- Testimonials -->
-  <section style="margin-top: 32px;">
-    <h2 style="margin: 0; font-size: 28px; font-weight: 950; color:#0f172a;">What learners say</h2>
-    <p style="margin: 8px 0 0; color: rgba(15,23,42,0.65); font-weight: 650;">
-      Real feedback from students and interns.
-    </p>
 
     <div
       style="
@@ -557,35 +560,90 @@
         gap: 14px;
       "
     >
-      {#each testimonials as t}
+      {#each certificates as c}
         <div
           style="
             border-radius: 18px;
-            background: rgba(255,255,255,0.85);
-            border: 1px solid rgba(15,23,42,0.10);
-            box-shadow: 0 14px 30px rgba(15,23,42,0.06);
+            background: rgba(255,255,255,0.88);
+            border: 1px solid rgba(15,23,42,0.12);
+            box-shadow: 0 14px 30px rgba(15,23,42,0.08);
             padding: 14px;
           "
         >
-          <div style="font-weight: 950; color:#0f172a;">{t.stars}</div>
-          <div style="margin-top: 10px; color: rgba(15,23,42,0.70); font-weight: 650; line-height: 1.7;">
-            “{t.text}”
+          <div
+            style="
+              height: 150px;
+              border-radius: 16px;
+              overflow: hidden;
+              border: 1px solid rgba(15,23,42,0.12);
+              background: rgba(15,23,42,0.06);
+            "
+          >
+            <img src={c.img} alt={c.title} style="width:100%; height:100%; object-fit:cover; display:block;" />
           </div>
-          <div style="margin-top: 12px; font-weight: 950; color:#0f766e;">— {t.name}</div>
+
+          <div style="margin-top: 10px; font-weight: 980; color:#0f172a;">{c.title}</div>
+          <div style="margin-top: 6px; color: rgba(15,23,42,0.65); font-weight: 700; font-size: 13px;">
+            Provider: {c.provider}
+          </div>
+
+          <button
+            on:click={() => openCert(c)}
+            style="
+              margin-top: 12px;
+              width: 100%;
+              padding: 12px;
+              border-radius: 14px;
+              border: none;
+              background: rgba(16,185,129,0.18);
+              border: 1px solid rgba(16,185,129,0.28);
+              color: #0f766e;
+              font-weight: 980;
+              cursor: pointer;
+            "
+          >
+            View Certificate →
+          </button>
         </div>
       {/each}
     </div>
   </section>
 
-  <!-- Final CTA -->
-  <section style="margin-top: 34px;">
+  <!-- Testimonials -->
+  <section style="margin-top: 30px;">
+    <h2 style="margin: 0; font-size: 28px; font-weight: 980; color:#0f172a;">What learners say</h2>
+    <p style="margin: 8px 0 0; color: rgba(15,23,42,0.65); font-weight: 650;">Real feedback from students and interns.</p>
+
+    <div style="margin-top: 16px; display:grid; grid-template-columns: repeat(3, 1fr); gap: 14px;">
+      {#each testimonials as t}
+        <div
+          style="
+            border-radius: 18px;
+            background: rgba(255,255,255,0.88);
+            border: 1px solid rgba(15,23,42,0.12);
+            box-shadow: 0 14px 30px rgba(15,23,42,0.08);
+            padding: 14px;
+          "
+        >
+          <div style="font-weight: 980; color:#0f172a;">{t.stars}</div>
+          <div style="margin-top: 10px; color: rgba(15,23,42,0.75); font-weight: 650; line-height: 1.7;">
+            “{t.text}”
+          </div>
+          <div style="margin-top: 12px; font-weight: 980; color:#0f766e;">— {t.name}</div>
+        </div>
+      {/each}
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section style="margin-top: 30px;">
     <div
       style="
         border-radius: 22px;
         padding: 18px;
         border: 1px solid rgba(15,23,42,0.10);
-        background: linear-gradient(135deg, rgba(16,185,129,0.20), rgba(255,255,255,0.90));
-        box-shadow: 0 16px 36px rgba(15,23,42,0.08);
+        background: linear-gradient(135deg, rgba(16,185,129,0.22), rgba(255,255,255,0.92));
+        box-shadow: 0 16px 36px rgba(15,23,42,0.10);
         display:flex;
         justify-content: space-between;
         align-items: center;
@@ -594,49 +652,142 @@
       "
     >
       <div>
-        <div style="font-weight: 950; color:#0f172a; font-size: 20px;">Ready to level up your career?</div>
+        <div style="font-weight: 980; color:#0f172a; font-size: 20px;">Ready to level up your career?</div>
         <div style="margin-top: 6px; color: rgba(15,23,42,0.65); font-weight: 650;">
           Start learning today — and use AI tools to study faster.
         </div>
       </div>
 
       <div style="display:flex; gap:10px; flex-wrap:wrap;">
-        <a
-          href="/courses"
-          style="
-            text-decoration:none;
-            padding: 12px 16px;
-            border-radius: 14px;
-            background: #10b981;
-            color: white;
-            font-weight: 950;
-            box-shadow: 0 14px 30px rgba(16,185,129,0.20);
-          "
-        >
+        <a href="/courses" style="text-decoration:none; padding: 12px 16px; border-radius: 14px; background: #10b981; color: white; font-weight: 980; box-shadow: 0 14px 30px rgba(16,185,129,0.22);">
           Explore Courses
         </a>
-        <a
-          href="/ai"
-          style="
-            text-decoration:none;
-            padding: 12px 16px;
-            border-radius: 14px;
-            background: rgba(16,185,129,0.12);
-            border: 1px solid rgba(16,185,129,0.22);
-            color: #0f766e;
-            font-weight: 950;
-          "
-        >
+        <a href="/ai" style="text-decoration:none; padding: 12px 16px; border-radius: 14px; background: rgba(16,185,129,0.14); border: 1px solid rgba(16,185,129,0.26); color: #0f766e; font-weight: 980;">
           Try AI Tutor
         </a>
       </div>
     </div>
   </section>
+
+  <!-- ✅ Certificate Modal -->
+  {#if certOpen && activeCert}
+    <div
+      on:click={closeCert}
+      style="
+        position: fixed;
+        inset: 0;
+        z-index: 999;
+        background: rgba(2,6,23,0.62);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 18px;
+      "
+    >
+      <div
+        on:click|stopPropagation={() => {}}
+        style="
+          width: min(920px, 100%);
+          border-radius: 18px;
+          overflow: hidden;
+          background: rgba(255,255,255,0.96);
+          border: 1px solid rgba(255,255,255,0.26);
+          box-shadow: 0 30px 90px rgba(0,0,0,0.35);
+        "
+      >
+        <div
+          style="
+            padding: 12px 14px;
+            display:flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid rgba(15,23,42,0.10);
+            background: linear-gradient(135deg, rgba(16,185,129,0.14), rgba(14,165,233,0.10));
+          "
+        >
+          <div style="font-weight: 980; color:#0f172a;">
+            🏆 {activeCert.title}
+            <span style="font-weight: 700; color: rgba(15,23,42,0.65); font-size: 13px; margin-left: 8px;">
+              ({activeCert.provider})
+            </span>
+          </div>
+
+          <button
+            on:click={closeCert}
+            style="
+              border: none;
+              background: rgba(0,0,0,0.55);
+              color: white;
+              font-size: 14px;
+              font-weight: 900;
+              width: 32px;
+              height: 32px;
+              border-radius: 999px;
+              cursor: pointer;
+            "
+          >
+            ✕
+          </button>
+        </div>
+
+        <div style="padding: 14px;">
+          <img
+            src={activeCert.img}
+            alt={activeCert.title}
+            style="
+              width: 100%;
+              max-height: 72vh;
+              object-fit: contain;
+              display: block;
+              border-radius: 14px;
+              border: 1px solid rgba(15,23,42,0.10);
+              background: rgba(15,23,42,0.04);
+            "
+          />
+
+          <div style="display:flex; justify-content: flex-end; gap: 10px; margin-top: 12px; flex-wrap: wrap;">
+            <a
+              href={activeCert.img}
+              target="_blank"
+              style="
+                text-decoration:none;
+                padding: 10px 14px;
+                border-radius: 14px;
+                background: rgba(15,23,42,0.06);
+                border: 1px solid rgba(15,23,42,0.12);
+                color: rgba(15,23,42,0.82);
+                font-weight: 900;
+              "
+            >
+              Open Image ↗
+            </a>
+
+            <button
+              on:click={closeCert}
+              style="
+                padding: 10px 14px;
+                border-radius: 14px;
+                border: none;
+                background: #10b981;
+                color: white;
+                font-weight: 980;
+                cursor: pointer;
+                box-shadow: 0 14px 30px rgba(16,185,129,0.22);
+              "
+            >
+              Done
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  {/if}
 </section>
 
 <style>
   @media (max-width: 1100px) {
-    section > div:nth-child(2) {
+    section > div:nth-child(3) {
       grid-template-columns: 1fr !important;
       gap: 22px !important;
     }
