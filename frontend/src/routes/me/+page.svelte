@@ -5,7 +5,7 @@
   const API_URL = import.meta.env.PUBLIC_API_URL ?? "http://127.0.0.1:8000";
   const MY_COURSES_ENDPOINT = "/me/courses";
 
-  // ✅ default profile image you gave
+  
   const DEFAULT_PROFILE_IMG = "https://www.transcend.co.za/hubfs/studnet.png";
 
   let loading = true;
